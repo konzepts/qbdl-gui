@@ -30,7 +30,7 @@ def create_or_update_config(email, password, download_location, quality, create=
     if not create:
         config.read(config_file)
         config['DEFAULT']['email'] = email
-        config['DEFAULT']['password'] = hashlib.md5(password.encode('utf-8')).hexdigest()  # Using MD5 for hashing
+        config['DEFAULT']['password'] = password  # Store password without hashing
         config['DEFAULT']['download_location'] = download_location
         config['DEFAULT']['quality'] = str(quality)
         with open(config_file, 'w') as f:
@@ -69,10 +69,11 @@ def index():
         config = configparser.ConfigParser()
         config.read(config_file)
         email = config['DEFAULT'].get('email', '')
+        password = config['DEFAULT'].get('password', '')  # Retrieve password
         download_location = config['DEFAULT'].get('download_location', '')
         quality = config['DEFAULT'].get('quality', '7')
     
-    return render_template('index.html', email=email, password=password, download_location=download_location, quality=quality, remember=remember)
+    return render_template('index.html', email=email, password=password, download_location=download_location, quality=quality)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

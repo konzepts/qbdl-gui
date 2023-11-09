@@ -1,3 +1,6 @@
+import os
+import configparser
+import hashlib
 from flask import Flask, render_template, request, session, jsonify
 import logging
 from qobuz_dl import QobuzDL
@@ -6,9 +9,35 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = 'YOUR_SECRET_KEY'
+config_file = 'config.ini'  # Define the path to the config file
+
+def create_or_update_config(email, password, download_location, quality, create=False):
+    """Create a new config file or update the existing one with the user's settings."""
+    config = configparser.ConfigParser()
+    if create or not os.path.exists(config_file):
+        config['DEFAULT'] = {
+            'email': '',
+            'password': '',
+            'download_location': '',
+            'quality': '7',  # Default quality
+        }
+        with open(config_file, 'w') as f:
+            config.write(f)
+
+    if not create:
+        config.read(config_file)
+        config['DEFAULT']['email'] = email
+        config['DEFAULT']['password'] = hashlib.md5(password.encode('utf-8')).hexdigest()  # Using MD5 for hashing
+        config['DEFAULT']['download_location'] = download_location
+        config['DEFAULT']['quality'] = str(quality)
+        with open(config_file, 'w') as f:
+            config.write(f)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    # Create a config file on first use
+    create_or_update_config(None, None, None, None, create=True)
+    
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -29,18 +58,19 @@ def index():
             logging.error("An error occurred: " + str(e))
             return jsonify(status='error', message=str(e)), 500
 
-        if remember == 'on':
-            session['email'] = email
-            session['password'] = password
-            session['download_location'] = download_location
-            session['quality'] = quality
+        if request.form.get('remember') == 'on':
+            # Save the settings in the config file
+            create_or_update_config(email, password, request.form['download_location'], request.form['quality'])
 
         return jsonify(status='completed')
 
-    email = session.get('email', '')
-    download_location = session.get('download_location', '')
-    quality = session.get('quality', 27)
-
+    # Pre-fill the form with values from config if it exists
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    email = config['DEFAULT'].get('email', '')
+    download_location = config['DEFAULT'].get('download_location', '')
+    quality = config['DEFAULT'].get('quality', '7')
+    
     return render_template('index.html', email=email, download_location=download_location, quality=quality)
 
 if __name__ == '__main__':

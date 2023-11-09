@@ -72,7 +72,7 @@ def index():
         download_location = config['DEFAULT'].get('download_location', '')
         quality = config['DEFAULT'].get('quality', '7')
     
-    return render_template('index.html', email=email, download_location=download_location, quality=quality)
+    return render_template('index.html', email=email, password=password, download_location=download_location, quality=quality, remember=remember)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

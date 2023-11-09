@@ -36,6 +36,15 @@ def create_or_update_config(email, password, download_location, quality, create=
         with open(config_file, 'w') as f:
             config.write(f)
 
+def get_selected_quality(config_quality):
+    quality_mapping = {
+        '27': 'Hi-Res Audio FLAC - 24 bit, up to 192kHz',
+        '7': 'Hi-Res Audio FLAC - 24 bit, up to 96kHz',
+        '6': 'CD Quality FLAC - 16 bit, 44.1kHz',
+        '5': 'MP3 - 320 kbps'
+    }
+    return quality_mapping.get(config_quality, '27')  # Default to '7' if not found
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     # Create a config file on first use
@@ -62,19 +71,27 @@ def index():
             return jsonify(status='error', message=str(e)), 500
 
         if request.form.get('remember') == 'on':
-            # Save the settings in the config file
+            logging.info('Remember is on, updating config.ini')
             create_or_update_config(email, password, request.form['download_location'], request.form['quality'])
+        else:
+            logging.info('Remember is not on, not updating config.ini')
 
         return jsonify(status='completed')
 
-    # Pre-fill the form with values from config if it exists
+     # Pre-fill the form with values from config if it exists
     config = configparser.ConfigParser()
     config.read(config_file)
-    email = config['DEFAULT'].get('email', '')
-    download_location = config['DEFAULT'].get('download_location', '')
-    quality = config['DEFAULT'].get('quality', '7')
-    
-    return render_template('index.html', email=email, download_location=download_location, quality=quality)
+    if config.has_section('DEFAULT'):
+        email = config['DEFAULT'].get('email', '')
+        download_location = config['DEFAULT'].get('download_location', '')
+        quality = config['DEFAULT'].get('quality', '7')
+    else:
+        email = ''
+        download_location = ''
+        quality = '7'
+        logging.info('No DEFAULT section in config.ini')
+
+    return render_template('index.html', email=email, download_location=download_location, quality=selected_quality)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

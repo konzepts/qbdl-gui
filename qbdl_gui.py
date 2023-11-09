@@ -1,7 +1,7 @@
 import os
 import configparser
 import hashlib
-from flask import Flask, render_template, request, session, jsonify
+from flask import Flask, render_template, request, jsonify
 import logging
 from qobuz_dl import QobuzDL
 
@@ -41,7 +41,7 @@ def index():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        url = request.form['url']
+        urls = request.form.getlist('url')  # Get list of URLs
         download_location = request.form['download_location']
         quality = int(request.form['quality'])
         remember = request.form.get('rememberMe')
@@ -53,7 +53,8 @@ def index():
             )
             qobuz.get_tokens()
             qobuz.initialize_client(email, password, qobuz.app_id, qobuz.secrets)
-            qobuz.handle_url(url)
+            for url in urls:  # Handle each URL
+                qobuz.handle_url(url)
         except Exception as e:
             logging.error("An error occurred: " + str(e))
             return jsonify(status='error', message=str(e)), 500
@@ -74,6 +75,16 @@ def index():
         quality = config['DEFAULT'].get('quality', '7')
     
     return render_template('index.html', email=email, password=password, download_location=download_location, quality=quality)
+
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query')
+    item_type = request.args.get('type')
+    qobuz = QobuzDL()  # Initialize QobuzDL
+    qobuz.get_tokens()
+    qobuz.initialize_client(email, password, qobuz.app_id, qobuz.secrets)
+    results = qobuz.search_by_type(query, item_type, 10)  # Search using the query and item type
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

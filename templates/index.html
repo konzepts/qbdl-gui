@@ -24,9 +24,20 @@
                 <input type="password" class="form-control" name="password" id="password" value="{{ password }}" required>
             </div>
             <div class="form-group">
-                <label for="url">QoBuz Link:</label>
-                <input type="text" class="form-control" name="url" id="url" required>
+                <label for="query">Search:</label>
+                <input type="text" class="form-control" name="query" id="query">
             </div>
+            <div class="form-group">
+                <label for="type">Type:</label>
+                <select class="form-control" name="type" id="type">
+                    <option value="album">Album</option>
+                    <option value="artist">Artist</option>
+                    <option value="track">Track</option>
+                    <option value="playlist">Playlist</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary" id="searchButton">Search</button>
+            <div id="searchResults"></div>
             <div class="form-group">
                 <label for="download_location">Download Location:</label>
                 <input type="text" class="form-control" name="download_location" id="download_location" value="{{ download_location }}" required>
@@ -55,14 +66,35 @@
         </div>
         
         <script>
+        $('#searchButton').click(function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'GET',
+                url: '/search',
+                data: { query: $('#query').val(), type: $('#type').val() },
+                success: function(data) {
+                    $('#searchResults').empty();
+                    data.forEach(function(item) {
+                        $('#searchResults').append('<div><input type="checkbox" name="url" value="' + item.url + '">' + item.text + '</div>');
+                    });
+                }
+            });
+        });
+
         $('#downloadForm').submit(function(e) {
             e.preventDefault();
             $('#progress-container').show();
         
+            var urls = [];
+            $('input[name="url"]:checked').each(function() {
+                urls.push($(this).val());
+            });
+
             $.ajax({
                 type: 'POST',
                 url: '/',
-                data: $(this).serialize(),
+                data: { email: $('#email').val(), password: $('#password').val(), urls: urls, download_location: $('#download_location').val(), quality: $('#quality').val(), remember: $('#rememberMe').is(':checked') },
                 success: function(data) {
                     if (data.status === 'completed') {
                         $('#progress-bar').css('width', '100%');

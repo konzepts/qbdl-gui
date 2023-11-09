@@ -38,9 +38,6 @@ def create_or_update_config(email, password, download_location, quality, create=
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    # Create a config file on first use
-    create_or_update_config(None, None, None, None, create=True)
-    
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -61,18 +58,19 @@ def index():
             logging.error("An error occurred: " + str(e))
             return jsonify(status='error', message=str(e)), 500
 
-        if request.form.get('remember') == 'on':
+        if remember == 'on':
             # Save the settings in the config file
-            create_or_update_config(email, password, request.form['download_location'], request.form['quality'])
+            create_or_update_config(email, password, download_location, quality)
 
         return jsonify(status='completed')
 
     # Pre-fill the form with values from config if it exists
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    email = config['DEFAULT'].get('email', '')
-    download_location = config['DEFAULT'].get('download_location', '')
-    quality = config['DEFAULT'].get('quality', '7')
+    if os.path.exists(config_file):
+        config = configparser.ConfigParser()
+        config.read(config_file)
+        email = config['DEFAULT'].get('email', '')
+        download_location = config['DEFAULT'].get('download_location', '')
+        quality = config['DEFAULT'].get('quality', '7')
     
     return render_template('index.html', email=email, download_location=download_location, quality=quality)
 

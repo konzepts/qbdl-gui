@@ -82,6 +82,14 @@ def search():
     item_type = request.args.get('type')
     qobuz = QobuzDL()  # Initialize QobuzDL
     qobuz.get_tokens()
+
+    # Pre-fill the form with values from config if it exists
+    if os.path.exists(config_file):
+        config = configparser.ConfigParser()
+        config.read(config_file)
+        email = config['DEFAULT'].get('email', '')
+        password = config['DEFAULT'].get('password', '')  # Retrieve password
+
     qobuz.initialize_client(email, password, qobuz.app_id, qobuz.secrets)
     results = qobuz.search_by_type(query, item_type, 10)  # Search using the query and item type
     return jsonify(results)

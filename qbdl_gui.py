@@ -39,7 +39,7 @@ def index():
 
     email = session.get('email', '')
     download_location = session.get('download_location', '')
-    quality = session.get('quality', 7)
+    quality = session.get('quality', 27)
 
     return render_template('index.html', email=email, download_location=download_location, quality=quality)
 

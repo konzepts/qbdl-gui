@@ -9,17 +9,20 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = 'YOUR_SECRET_KEY'
-config_file = 'config.ini'  # Define the path to the config file
+config_directory = '/app/config'
+config_file = os.path.join(config_directory, 'config.ini')  # Updated path to the config file
 
 def create_or_update_config(email, password, download_location, quality, create=False):
     """Create a new config file or update the existing one with the user's settings."""
+    if not os.path.exists(config_directory):
+        os.makedirs(config_directory)  # Ensure the config directory exists
     config = configparser.ConfigParser()
     if create or not os.path.exists(config_file):
         config['DEFAULT'] = {
             'email': '',
             'password': '',
             'download_location': '',
-            'quality': '7',  # Default quality
+            'quality': '27',  # Default quality
         }
         with open(config_file, 'w') as f:
             config.write(f)

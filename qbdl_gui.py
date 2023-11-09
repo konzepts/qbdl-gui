@@ -91,7 +91,7 @@ def index():
         quality = '7'
         logging.info('No DEFAULT section in config.ini')
 
-    return render_template('index.html', email=email, download_location=download_location, quality=get_selected_quality)
+    return render_template('index.html', email=email, download_location=download_location, quality=selected_quality)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

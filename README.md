@@ -1,6 +1,6 @@
 # qbdl-gui
 
-qbdl-gui is a gui for qobuz-dl a tool used for downloading music from Qobuz.
+qbdl-gui is a gui for qobuz-dl by @vitiko98.
 
 ## Features
 
@@ -20,7 +20,7 @@ git clone https://github.com/konzepts/qbdl-gui.git
 cd qbdl-gui
 ```
 
-2. Virtual Environment: Consider using a virtual environment to isolate the dependencies for your project. This can help avoid conflicts between different versions of libraries. You can create a virtual environment using:
+2. Virtual Environment: Consider using a virtual environment to isolate the dependencies for the project. This can help avoid conflicts between different versions of libraries. You can create a virtual environment using:
 
 ```
 python3 -m venv qbdl
